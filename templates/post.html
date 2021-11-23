@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{{ super() }}
+
+    <p>Название статьи: {{post.title}} </p>
+    <p>{{post.text}} </p>
+
+{% endblock %}
