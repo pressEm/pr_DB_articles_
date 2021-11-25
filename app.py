@@ -103,6 +103,33 @@ def add_post():
 
 
 
+@app.route("/delete_post/<id>", methods=["POST", "GET"])
+def delete_post(id):
+    db = get_db()
+    dbase = FDataBase(db)
+    dbase.delete_post(id)
+    posts = dbase.get_all_posts()
+    return render_template('posts.html', posts=posts)
+
+
+# @app.route("/change_post/<id>", methods=["POST", "GET"])
+# def change_post(id):
+#     db = get_db()
+#     dbase = FDataBase(db)
+#     post = dbase.get_post_by_id(id)
+#     id_a = post[5]
+#     author = dbase.get_author_by_id(id_a)
+#     if request.method == "get":
+#         res1 = dbase.update_post(id, request.form['title'], request.form['text'])
+#         if not (res1):
+#             flash('Ошибка добавления статьи', category='error')
+#         else:
+#             flash('Информация добавлена успешно', category='success')
+#             return redirect(url_for("change", id=id))
+#     return render_template('change.html', post=post, author=author)
+
+
+
 @app.route("/show_authors/", methods=["POST", "GET"])
 def show_authors():
     db = get_db()
@@ -146,8 +173,11 @@ def show_topics_2(id):
 def show_post(id):
     db = get_db()
     dbase = FDataBase(db)
-    post = dbase.get_posts_by_id(id)
-    return render_template('post.html', post=post)
+    post = dbase.get_post_by_id(id)
+    id_a = post[5]
+    print(id_a)
+    author = dbase.get_author_by_id(id_a)
+    return render_template('post.html', post=post, author=author)
 
 
 # @app.route("/add_post", methods=["POST", "GET"])

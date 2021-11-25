@@ -3,7 +3,12 @@
 {% block content %}
 {{ super() }}
 
-    <p>Название статьи: {{post.title}} </p>
-    <p>{{post.text}} </p>
+<form id="deletion" action="{{ url_for('delete_post', id=post.id) }}" method="post">
+    <p><input type="submit" value="Удалить статью"/></p>
+</form>
+<p>Название статьи: {{post.title}} </p>
+<p>Автор статьи: {{author.login}} </p>
+<p>{{post.text}} </p>
+
 
 {% endblock %}

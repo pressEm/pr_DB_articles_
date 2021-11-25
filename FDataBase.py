@@ -81,7 +81,7 @@ class FDataBase:
             print("Ошибка получения из БД" + str(e))
         return False
 
-    def get_posts_by_id(self, id):
+    def get_post_by_id(self, id):
         try:
             self.__cur.execute(
                 f"SELECT * FROM posts where id == :id", (id,))
@@ -102,6 +102,28 @@ class FDataBase:
             res = self.__cur.fetchone()
             if res:
                 return res[0]
+        except sqlite3.Error as e:
+            print("Ошибка получения из БД" + str(e))
+        return False
+
+    def update_post(self, id, title, text):
+        try:
+            sql = """UPDATE posts SET title=:title, text=:text id=:id"""
+            self.__cur.execute(sql, [title, text, id])
+            self.__db.commit()
+        except sqlite3.Error as e:
+            print("Ошибка добавления статьи в БДLL " + str(e))
+            return False
+
+    def get_author_by_id(self, idd):
+
+        try:
+            self.__cur.execute(
+                f"SELECT * FROM authors where id == :id", (idd,))
+            res = self.__cur.fetchone()
+            if res:
+                print(type(idd))
+                return res
         except sqlite3.Error as e:
             print("Ошибка получения из БД" + str(e))
         return False
@@ -129,6 +151,17 @@ class FDataBase:
             print("Ошибка добавления статьи в БДLL " + str(e))
             return False
         return True
+
+    def delete_post(self, idd):
+        try:
+            sql1 = """DELETE FROM posts WHERE id == :idd"""
+            self.__cur.execute(sql1, (idd,))
+            self.__db.commit()
+            res = self.__cur.fetchone()
+            if res: return res
+        except sqlite3.Error as e:
+            print("Ошибка при удалении комментария из БД " + str(e))
+        return False
 
     def add_auth(self, login):
         try:
