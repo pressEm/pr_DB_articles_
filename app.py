@@ -103,31 +103,44 @@ def add_post():
 
 
 
-@app.route("/delete_post/<id>", methods=["POST", "GET"])
-def delete_post(id):
+@app.route("/delete_post/<id_post>/<id_auth>", methods=["POST", "GET"])
+def delete_post(id_post, id_auth):
     db = get_db()
     dbase = FDataBase(db)
-    dbase.delete_post(id)
+    post = dbase.get_post_by_id(id_post)
+    dbase.delete_post(id_post)
+    # dbase.get_author_by_id(id)
+    posts_author = dbase.get_posts_by_author(id_auth)
+
+    if (not posts_author):
+        dbase.delete_auth(id_auth)
     posts = dbase.get_all_posts()
     return render_template('posts.html', posts=posts)
 
 
-# @app.route("/change_post/<id>", methods=["POST", "GET"])
-# def change_post(id):
-#     db = get_db()
-#     dbase = FDataBase(db)
-#     post = dbase.get_post_by_id(id)
-#     id_a = post[5]
-#     author = dbase.get_author_by_id(id_a)
-#     if request.method == "get":
-#         res1 = dbase.update_post(id, request.form['title'], request.form['text'])
-#         if not (res1):
-#             flash('Ошибка добавления статьи', category='error')
-#         else:
-#             flash('Информация добавлена успешно', category='success')
-#             return redirect(url_for("change", id=id))
-#     return render_template('change.html', post=post, author=author)
+@app.route("/change_post/<id_post>/<id_auth>", methods=["POST", "GET"])
+def change_post(id_post, id_auth):
 
+    db = get_db()
+    dbase = FDataBase(db)
+    post = dbase.get_post_by_id(id_post)
+    author = dbase.get_author_by_id(id_auth)
+    if "title" in request.form:
+        print("DAA")
+        print(request.form['title'])
+
+        print(request.form['text'])
+    if request.method == "POST":
+        print("(((((((((((((((((((((")
+        res1 = dbase.update_post(id_post, request.form['title'], request.form['text'])
+        post = dbase.get_post_by_id(id_post)
+
+        if not (res1):
+            flash('Ошибка добавления статьи', category='error')
+        else:
+            flash('Информация добавлена успешно', category='success')
+            return render_template('post.html', post=post, author=author)
+    return render_template('change_post.html', post=post, author=author)
 
 
 @app.route("/show_authors/", methods=["POST", "GET"])
