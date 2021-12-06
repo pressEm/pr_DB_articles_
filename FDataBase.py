@@ -1,7 +1,7 @@
 # -*-coding: utf-8 -*-
 import datetime
 import sqlite3
-
+#new
 class FDataBase:
     def __init__(self, db):
         self.__db = db
