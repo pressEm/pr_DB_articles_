@@ -89,6 +89,17 @@ class FDataBase:
             print("Ошибка получения из БД" + str(e))
         return False
 
+    def get_topic_by_title(self, title):
+        try:
+            self.__cur.execute(
+                f"SELECT * FROM topics where title like :title", (title))
+            res = self.__cur.fetchall()
+            if res:
+                return res
+        except sqlite3.Error as e:
+            print("Ошибка получения из БД" + str(e))
+        return False
+
     def get_id_author(self, login):
         try:
             self.__cur.execute(
@@ -131,6 +142,19 @@ class FDataBase:
             sql = """INSERT INTO posts (title, text, url, time, id_user, id_topics)
                       values (:title, :text, :url, :time, :id_user, :id_topics)"""
             self.__cur.execute(sql, [title, text, "url", date_, id_user, id_topics])
+            self.__db.commit()
+        except sqlite3.Error as e:
+            print("Ошибка добавления статьи в БДLL " + str(e))
+            return False
+        return True
+    def add_comment(self, text, id_user, id_post):
+        print("add_comm")
+        try:
+            date_ = datetime.datetime.now()
+            print(date_)
+            sql = """INSERT INTO comments (text, id_user, id_post)
+                      values (:text, :id_user, :id_post)"""
+            self.__cur.execute(sql, [text, id_user, id_post])
             self.__db.commit()
         except sqlite3.Error as e:
             print("Ошибка добавления статьи в БДLL " + str(e))
@@ -215,6 +239,16 @@ class FDataBase:
     def getPostsAnonce(self):
         try:
             self.__cur.execute(f"SELECT id, title, text, url FROM posts ORDER BY time DESC")
+            res = self.__cur.fetchall()
+            if res: return res
+        except sqlite3.Error as e:
+            print("Ошибка получения статьи из БД " + str(e))
+
+        return []
+
+    def get_comments_post(self, id_post):
+        try:
+            self.__cur.execute(f"SELECT * FROM comments where id_post = {id_post} ")
             res = self.__cur.fetchall()
             if res: return res
         except sqlite3.Error as e:

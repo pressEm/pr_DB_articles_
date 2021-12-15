@@ -1,3 +1,4 @@
+import re
 import sqlite3
 import os
 from flask import Flask, render_template, request, g, flash, abort, redirect, url_for, make_response
@@ -12,22 +13,25 @@ MAX_CONTENT_LENGTH = 1024 * 1024
 
 app = Flask(__name__)
 app.config.from_object(__name__)
-app.config.update(dict(DATABASE=os.path.join(app.root_path,'main.db')))
+app.config.update(dict(DATABASE=os.path.join(app.root_path, 'main.db')))
 
-#установление соединеня с бд
+
+# установление соединеня с бд
 def connect_db():
     conn = sqlite3.connect(app.config['DATABASE'])
     # запись из бд не в виде картежей, а в виде словаря
     conn.row_factory = sqlite3.Row
     return conn
 
+
 # Вспомогательная функция для создания таблиц БД
 def create_db():
     db = connect_db()
     with app.open_resource('sq_db.sql', mode='r') as f:
-        db.cursor().executescript(f.read()) # запускает выполнение sql скриптов, ктр были прочитаны из файла sq_db.sql
-    db.commit() # записываем изменения в бд
+        db.cursor().executescript(f.read())  # запускает выполнение sql скриптов, ктр были прочитаны из файла sq_db.sql
+    db.commit()  # записываем изменения в бд
     db.close()
+
 
 # create_db()
 
@@ -37,13 +41,17 @@ def get_db():
         g.link_db = connect_db()
     return g.link_db
 
+
 # Установление соединения с БД перед выполнением запроса
 dbase = None
+
+
 @app.before_request
 def before_request():
     global dbase
     db = get_db()
     dbase = FDataBase(db)
+
 
 # Закрываем соединение с БД, если оно было установлено
 @app.teardown_appcontext
@@ -51,10 +59,12 @@ def close_db(error):
     if hasattr(g, 'link_db'):
         g.link_db.close()
 
+
 # Главная страница
 @app.route("/")
 def index():
     return render_template('index.html', posts=dbase.getPostsAnonce())
+
 
 @app.route("/all_posts", methods=["POST", "GET"])
 def show_all_posts():
@@ -63,6 +73,8 @@ def show_all_posts():
     posts = dbase.get_all_posts()
 
     return render_template('posts.html', posts=posts)
+
+
 #
 # @app.route("/add_post", methods=["POST", "GET"])
 # def add_post():
@@ -102,6 +114,46 @@ def add_post():
     return render_template('add_post.html', posts=posts, title="Добавление информации о пoсте")
 
 
+@app.route("/search_post", methods=["POST", "GET"])
+def search_post():
+    db = get_db()
+    dbase = FDataBase(db)
+    posts = dbase.get_all_posts()
+    all_topics = dbase.get_all_topics()
+    res = []
+    if request.method == "POST":
+        for p in posts:
+            res.append(p)
+        search_topics = contains(all_topics, request.form['topic'])
+        if len(search_topics) > 0:
+            rres = []
+            for p in res:
+                for t in search_topics:
+                    if p[6] == t[0]:
+                        rres.append(p)
+            res = rres
+        search_titles = contains(res, request.form['title'])
+        res = search_titles
+    return render_template('search_post.html', posts=posts, res=res)
+
+
+def contains(topics, part):
+    print("re_exp")
+    print(topics[0][1])
+    res = []
+    titles = []
+    for t in topics:
+        titles.append(t[1])
+    r = re.compile(".*?%s" % (part,))
+    newlist = list(filter(r.match, titles))
+    # print(newlist)
+    for t in topics:
+        for l in newlist:
+            if t[1] == l:
+                res.append(t)
+    print(res)
+    return res
+
 
 @app.route("/delete_post/<id_post>/<id_auth>", methods=["POST", "GET"])
 def delete_post(id_post, id_auth):
@@ -120,7 +172,6 @@ def delete_post(id_post, id_auth):
 
 @app.route("/change_post/<id_post>/<id_auth>", methods=["POST", "GET"])
 def change_post(id_post, id_auth):
-
     db = get_db()
     dbase = FDataBase(db)
     post = dbase.get_post_by_id(id_post)
@@ -150,6 +201,7 @@ def show_authors():
     authors = dbase.get_all_authors()
     return render_template('authors.html', authors=authors)
 
+
 @app.route("/show_authors_2/<id>", methods=["POST", "GET"])
 def show_authors_2(id):
     db = get_db()
@@ -162,12 +214,14 @@ def show_authors_2(id):
         print(p[5])
     return render_template('authors_2.html', authors=authors, posts=posts_a, a_id=posts_a[0][5])
 
+
 @app.route("/show_topics/", methods=["POST", "GET"])
 def show_topics():
     db = get_db()
     dbase = FDataBase(db)
     topics = dbase.get_all_topics()
     return render_template('topics.html', topics=topics)
+
 
 @app.route("/show_topics_2/<id>", methods=["POST", "GET"])
 def show_topics_2(id):
@@ -182,6 +236,7 @@ def show_topics_2(id):
         print(p[6])
     return render_template('topics_2.html', topics=topics, posts=posts_t, t_id=posts_t[0][6])
 
+
 @app.route("/show_post/<id>", methods=["POST", "GET"])
 def show_post(id):
     db = get_db()
@@ -191,6 +246,31 @@ def show_post(id):
     print(id_a)
     author = dbase.get_author_by_id(id_a)
     return render_template('post.html', post=post, author=author)
+
+@app.route("/add_comment/<id_post>", methods=["POST", "GET"])
+def add_comment(id_post):
+    db = get_db()
+    dbase = FDataBase(db)
+    post = dbase.get_post_by_id(id_post)
+
+    id_a = post[5]
+    print(id_a)
+    author = dbase.get_author_by_id(id_a)
+    comments = dbase.get_comments_post(id_post)
+    if request.method == "POST":
+        print(request.form['comment'])
+        id_auth = dbase.get_id_author(request.form['auth'])
+
+        res1 = dbase.add_comment(request.form['comment'], id_auth, id_post)
+        # if not (res1):
+        #     flash('Ошибка добавления статьи 95', category='error')
+        # else:
+        #     flash('Информация добавлена успешно', category='success')
+            # return render_template('employee.html', empl=employee)
+        comments = dbase.get_comments_post(id_post)
+        authors = dbase.get_all_authors()
+    return render_template('post.html', post=post, author=author, comments=comments, authors =authors)
+
 
 
 # @app.route("/add_post", methods=["POST", "GET"])

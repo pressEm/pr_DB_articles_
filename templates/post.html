@@ -10,6 +10,26 @@
 <form id="deletion" action="{{ url_for('delete_post', id_post=post.id, id_auth=author.id) }}" method="post">
     <p><input type="submit" value="Удалить статью"/></p>
 </form>
-<p><a href="{{ url_for('change_post', id_post=post.id, id_auth=author.id) }}">Редактироввать статью</a></p>
+<p><a class="link" href="{{ url_for('change_post', id_post=post.id, id_auth=author.id) }}">Редактироввать статью</a></p>
+
+<form id="add_comment" action="{{ url_for('add_comment', id_post=post.id) }}" method="post">
+    <p><label>Оставьте комментарий: </label> <input type="text" name="comment" value="" requied/>
+    <p><label>Автор: </label> <input type="text" name="auth" value="" requied/>
+    <p><input type="submit" value=" Добавить комментарий "/></p>
+</form>
+{% if not comments %}
+<p1>Список пуст</p1>
+{% else %}
+{% for c in comments %}
+<p><a>{{c.text}}</a></p>
+{% for a in authors %}
+{% if c.id_user == a.id %}
+<p><a>{{a.login}}</a></p>
+{% endif %}
+
+{% endfor %}
+
+{% endfor %}
+{% endif %}
 
 {% endblock %}

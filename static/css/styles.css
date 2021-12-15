@@ -254,3 +254,16 @@ ul.profile-info {
 	color: #800080;
 }
 ul.profile-info li {margin-top: 10px;}
+
+a.link {
+   color: #36454A;
+   background: -webkit-linear-gradient(top, #A4D3E0, #A4D3E0 50%, #CBE3EB 50%);
+   background: -o-linear-gradient(top, #A4D3E0, #A4D3E0 50%, #CBE3EB 50%);
+   background: linear-gradient(to top, #A4D3E0, #A4D3E0 50%, #CBE3EB 50%);
+   box-shadow: 2px 2px 3px black;
+}
+.link a:hover {
+   background: -webkit-linear-gradient(bottom, #A4D3E0, #A4D3E0 50%, #CBE3EB 50%);
+   background: -o-linear-gradient(bottom, #A4D3E0, #A4D3E0 50%, #CBE3EB 50%);
+   background: linear-gradient(to bottom, #A4D3E0, #A4D3E0 50%, #CBE3EB 50%);
+}
